@@ -28,17 +28,21 @@ import com.velocitypowered.proxy.connection.ConnectionTypes;
 import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.connection.forge.legacy.LegacyForgeConstants;
+import com.velocitypowered.proxy.connection.forge.modern.ModernForgeConstants;
+import com.velocitypowered.proxy.connection.transfer.TransferPacketConnectionType;
+import com.velocitypowered.proxy.connection.transfer.TransferPacketConstants;
 import com.velocitypowered.proxy.connection.util.VelocityInboundConnection;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
+import com.velocitypowered.proxy.protocol.ProtocolUtils;
 import com.velocitypowered.proxy.protocol.StateRegistry;
-import com.velocitypowered.proxy.protocol.packet.Handshake;
-import com.velocitypowered.proxy.protocol.packet.LegacyDisconnect;
-import com.velocitypowered.proxy.protocol.packet.LegacyHandshake;
-import com.velocitypowered.proxy.protocol.packet.LegacyPing;
+import com.velocitypowered.proxy.protocol.packet.*;
 import io.netty.buffer.ByteBuf;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Optional;
+import java.util.Set;
+
+import io.netty.buffer.Unpooled;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.logging.log4j.LogManager;
@@ -151,19 +155,29 @@ public class HandshakeSessionHandler implements MinecraftSessionHandler {
   }
 
   private ConnectionType getHandshakeConnectionType(Handshake handshake) {
-    // Determine if we're using Forge (1.8 to 1.12, may not be the case in 1.13).
-    if (handshake.getServerAddress().endsWith(LegacyForgeConstants.HANDSHAKE_HOSTNAME_TOKEN)
+    Set<String> mods = Set.of(handshake.getServerAddress().split("\0"));
+
+    ConnectionType connectionType;
+    if (mods.contains(ModernForgeConstants.HANDSHAKE_HOSTNAME_IDENTIFIER)
+            && handshake.getProtocolVersion().compareTo(ProtocolVersion.MINECRAFT_1_13) >= 0) {
+      connectionType = ConnectionTypes.MODERN_FORGE;
+    }
+    else if (mods.contains(LegacyForgeConstants.HANDSHAKE_HOSTNAME_IDENTIFIER)
         && handshake.getProtocolVersion().compareTo(ProtocolVersion.MINECRAFT_1_13) < 0) {
-      return ConnectionTypes.LEGACY_FORGE;
+      connectionType = ConnectionTypes.LEGACY_FORGE;
     } else if (handshake.getProtocolVersion().compareTo(ProtocolVersion.MINECRAFT_1_7_6) <= 0) {
       // 1.7 Forge will not notify us during handshake. UNDETERMINED will listen for incoming
       // forge handshake attempts. Also sends a reset handshake packet on every transition.
-      return ConnectionTypes.UNDETERMINED_17;
+      connectionType = ConnectionTypes.UNDETERMINED_17;
     } else {
-      // Note for future implementation: Forge 1.13+ identifies itself using a slightly different
-      // hostname token.
-      return ConnectionTypes.VANILLA;
+      connectionType = ConnectionTypes.VANILLA;
     }
+
+    if (mods.contains(TransferPacketConstants.HANDSHAKE_HOSTNAME_IDENTIFIER)) {
+      return new TransferPacketConnectionType(connectionType);
+    }
+
+    return connectionType;
   }
 
   /**

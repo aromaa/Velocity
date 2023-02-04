@@ -17,8 +17,10 @@
 
 package com.velocitypowered.proxy.connection.client;
 
+import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.backend.VelocityServerConnection;
 import com.velocitypowered.proxy.connection.forge.legacy.LegacyForgeHandshakeClientPhase;
+import com.velocitypowered.proxy.protocol.packet.LoginPluginResponse;
 import com.velocitypowered.proxy.protocol.packet.PluginMessage;
 
 /**
@@ -40,6 +42,12 @@ public interface ClientConnectionPhase {
   default boolean handle(ConnectedPlayer player,
       PluginMessage message,
       VelocityServerConnection server) {
+    return false;
+  }
+
+  default boolean handle(ConnectedPlayer player,
+                         LoginPluginResponse message,
+                         VelocityServerConnection server) {
     return false;
   }
 

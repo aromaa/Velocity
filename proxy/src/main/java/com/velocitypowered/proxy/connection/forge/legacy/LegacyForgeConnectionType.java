@@ -20,6 +20,7 @@ package com.velocitypowered.proxy.connection.forge.legacy;
 import com.velocitypowered.api.util.GameProfile;
 import com.velocitypowered.proxy.config.PlayerInfoForwarding;
 import com.velocitypowered.proxy.connection.ConnectionTypes;
+import com.velocitypowered.proxy.connection.client.ClientHandshakePhases;
 import com.velocitypowered.proxy.connection.util.ConnectionTypeImpl;
 
 /**
@@ -31,7 +32,8 @@ public class LegacyForgeConnectionType extends ConnectionTypeImpl {
       new GameProfile.Property("forgeClient", "true", "");
 
   public LegacyForgeConnectionType() {
-    super(LegacyForgeHandshakeClientPhase.NOT_STARTED,
+    super(ClientHandshakePhases.VANILLA,
+        LegacyForgeHandshakeClientPhase.NOT_STARTED,
         LegacyForgeHandshakeBackendPhase.NOT_STARTED);
   }
 

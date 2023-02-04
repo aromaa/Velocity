@@ -19,8 +19,11 @@ package com.velocitypowered.proxy.connection;
 
 import com.velocitypowered.proxy.connection.backend.BackendConnectionPhases;
 import com.velocitypowered.proxy.connection.client.ClientConnectionPhases;
+import com.velocitypowered.proxy.connection.client.ClientHandshakePhase;
+import com.velocitypowered.proxy.connection.client.ClientHandshakePhases;
 import com.velocitypowered.proxy.connection.forge.legacy.LegacyForgeConnectionType;
 import com.velocitypowered.proxy.connection.forge.legacy.LegacyForgeHandshakeClientPhase;
+import com.velocitypowered.proxy.connection.forge.modern.ModernForgeConnectionType;
 import com.velocitypowered.proxy.connection.util.ConnectionTypeImpl;
 
 /**
@@ -33,21 +36,26 @@ public final class ConnectionTypes {
    * to what type of connection we have.
    */
   public static final ConnectionType UNDETERMINED =
-      new ConnectionTypeImpl(ClientConnectionPhases.VANILLA, BackendConnectionPhases.UNKNOWN);
+      new ConnectionTypeImpl(ClientHandshakePhases.VANILLA, ClientConnectionPhases.VANILLA, BackendConnectionPhases.UNKNOWN);
 
   /**
    * Indicates that the connection is a Vanilla connection.
    */
   public static final ConnectionType VANILLA =
-      new ConnectionTypeImpl(ClientConnectionPhases.VANILLA, BackendConnectionPhases.VANILLA);
+      new ConnectionTypeImpl(ClientHandshakePhases.VANILLA, ClientConnectionPhases.VANILLA, BackendConnectionPhases.VANILLA);
 
   public static final ConnectionType UNDETERMINED_17 = new ConnectionTypeImpl(
-      LegacyForgeHandshakeClientPhase.NOT_STARTED, BackendConnectionPhases.UNKNOWN);
+          ClientHandshakePhases.VANILLA, LegacyForgeHandshakeClientPhase.NOT_STARTED, BackendConnectionPhases.UNKNOWN);
 
   /**
    * Indicates that the connection is a 1.8-1.12 Forge connection.
    */
   public static final ConnectionType LEGACY_FORGE = new LegacyForgeConnectionType();
+
+  /**
+   * Indicates that the connection is a 1.13+ Forge connection.
+   */
+  public static final ConnectionType MODERN_FORGE = new ModernForgeConnectionType();
 
   private ConnectionTypes() {
     throw new AssertionError();

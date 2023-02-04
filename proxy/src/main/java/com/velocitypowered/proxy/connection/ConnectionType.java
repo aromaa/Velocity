@@ -21,11 +21,14 @@ import com.velocitypowered.api.util.GameProfile;
 import com.velocitypowered.proxy.config.PlayerInfoForwarding;
 import com.velocitypowered.proxy.connection.backend.BackendConnectionPhase;
 import com.velocitypowered.proxy.connection.client.ClientConnectionPhase;
+import com.velocitypowered.proxy.connection.client.ClientHandshakePhase;
 
 /**
  * The types of connection that may be selected.
  */
 public interface ConnectionType {
+
+  ClientHandshakePhase getClientHandshakePhase();
 
   /**
    * The initial {@link ClientConnectionPhase} for this connection type.

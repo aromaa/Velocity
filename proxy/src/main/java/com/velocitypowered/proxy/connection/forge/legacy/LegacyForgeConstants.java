@@ -28,6 +28,8 @@ public class LegacyForgeConstants {
    */
   public static final String HANDSHAKE_HOSTNAME_TOKEN = "\0FML\0";
 
+  public static final String HANDSHAKE_HOSTNAME_IDENTIFIER = "FML";
+
   /**
    * The channel for legacy forge handshakes.
    */

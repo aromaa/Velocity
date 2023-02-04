@@ -22,19 +22,28 @@ import com.velocitypowered.proxy.config.PlayerInfoForwarding;
 import com.velocitypowered.proxy.connection.ConnectionType;
 import com.velocitypowered.proxy.connection.backend.BackendConnectionPhase;
 import com.velocitypowered.proxy.connection.client.ClientConnectionPhase;
+import com.velocitypowered.proxy.connection.client.ClientHandshakePhase;
 
 /**
  * Indicates the type of connection that has been made.
  */
 public class ConnectionTypeImpl implements ConnectionType {
 
+  private final ClientHandshakePhase clientHandshakePhase;
   private final ClientConnectionPhase initialClientPhase;
   private final BackendConnectionPhase initialBackendPhase;
 
-  public ConnectionTypeImpl(ClientConnectionPhase initialClientPhase,
+  public ConnectionTypeImpl(ClientHandshakePhase clientHandshakePhase,
+      ClientConnectionPhase initialClientPhase,
       BackendConnectionPhase initialBackendPhase) {
+    this.clientHandshakePhase = clientHandshakePhase;
     this.initialClientPhase = initialClientPhase;
     this.initialBackendPhase = initialBackendPhase;
+  }
+
+  @Override
+  public ClientHandshakePhase getClientHandshakePhase() {
+    return clientHandshakePhase;
   }
 
   @Override

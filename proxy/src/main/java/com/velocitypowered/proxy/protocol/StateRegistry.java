@@ -218,14 +218,15 @@ public enum StateRegistry {
           map(0x11, MINECRAFT_1_17, false),
           map(0x0E, MINECRAFT_1_19, false),
           map(0x0D, MINECRAFT_1_19_3, false));
-      clientbound.register(AvailableCommands.class, AvailableCommands::new,
+      //TOOD: Crossstitch
+      /*clientbound.register(AvailableCommands.class, AvailableCommands::new,
           map(0x11, MINECRAFT_1_13, false),
           map(0x12, MINECRAFT_1_15, false),
           map(0x11, MINECRAFT_1_16, false),
           map(0x10, MINECRAFT_1_16_2, false),
           map(0x12, MINECRAFT_1_17, false),
           map(0x0F, MINECRAFT_1_19, false),
-          map(0x0E, MINECRAFT_1_19_3, false));
+          map(0x0E, MINECRAFT_1_19_3, false));*/
       clientbound.register(PluginMessage.class, PluginMessage::new,
           map(0x3F, MINECRAFT_1_7_2, false),
           map(0x18, MINECRAFT_1_9, false),

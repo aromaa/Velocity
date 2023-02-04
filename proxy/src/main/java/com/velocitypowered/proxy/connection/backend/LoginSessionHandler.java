@@ -21,6 +21,7 @@ import com.velocitypowered.api.event.player.ServerLoginPluginMessageEvent;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.crypto.IdentifiedKey;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import com.velocitypowered.api.util.UuidUtils;
 import com.velocitypowered.proxy.VelocityServer;
 import com.velocitypowered.proxy.config.PlayerInfoForwarding;
 import com.velocitypowered.proxy.config.VelocityConfiguration;
@@ -28,6 +29,7 @@ import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.connection.VelocityConstants;
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer;
+import com.velocitypowered.proxy.connection.forge.modern.ModernForgeConstants;
 import com.velocitypowered.proxy.connection.util.ConnectionRequestResults;
 import com.velocitypowered.proxy.connection.util.ConnectionRequestResults.Impl;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
@@ -44,6 +46,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
@@ -98,6 +101,8 @@ public class LoginSessionHandler implements MinecraftSessionHandler {
       LoginPluginResponse response = new LoginPluginResponse(packet.getId(), true, forwardingData);
       mc.write(response);
       informationForwarded = true;
+    } else if (serverConn.getPhase().handle(serverConn, serverConn.getPlayer(), packet)) {
+      return true;
     } else {
       // Don't understand, fire event if we have subscribers
       if (!this.server.getEventManager().hasSubscribers(ServerLoginPluginMessageEvent.class)) {
@@ -145,8 +150,27 @@ public class LoginSessionHandler implements MinecraftSessionHandler {
       return true;
     }
 
+    ConnectedPlayer player = serverConn.getPlayer();
+    serverConn.getPhase().onJoin(serverConn, player);
+
     // The player has been logged on to the backend server, but we're not done yet. There could be
     // other problems that could arise before we get a JoinGame packet from the server.
+
+    //TODO: What can we do about this? Can we move this to ClientConnectionPhase cleanly?
+    MinecraftConnection pmc = player.getConnection();
+    if (pmc.getState() == StateRegistry.LOGIN) {
+      UUID playerUniqueId = player.getUniqueId();
+      if (server.getConfiguration().getPlayerInfoForwardingMode() == PlayerInfoForwarding.NONE) {
+        playerUniqueId = UuidUtils.generateOfflinePlayerUuid(player.getUsername());
+      }
+
+      ServerLoginSuccess success = new ServerLoginSuccess();
+      success.setUsername(player.getUsername());
+      success.setProperties(player.getGameProfileProperties());
+      success.setUuid(playerUniqueId);
+      pmc.write(success);
+      pmc.setState(StateRegistry.PLAY);
+    }
 
     // Move into the PLAY phase.
     MinecraftConnection smc = serverConn.ensureConnected();

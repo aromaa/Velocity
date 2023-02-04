@@ -19,6 +19,7 @@ package com.velocitypowered.proxy.connection.backend;
 
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer;
 import com.velocitypowered.proxy.connection.forge.legacy.LegacyForgeHandshakeBackendPhase;
+import com.velocitypowered.proxy.protocol.packet.LoginPluginMessage;
 import com.velocitypowered.proxy.protocol.packet.PluginMessage;
 
 /**
@@ -41,6 +42,15 @@ public interface BackendConnectionPhase {
       ConnectedPlayer player,
       PluginMessage message) {
     return false;
+  }
+
+  default boolean handle(VelocityServerConnection server,
+                         ConnectedPlayer player,
+                         LoginPluginMessage message) {
+    return false;
+  }
+
+  default void onJoin(VelocityServerConnection server, ConnectedPlayer player) {
   }
 
   /**

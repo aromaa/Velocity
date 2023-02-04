@@ -64,14 +64,16 @@ public class AuthSessionHandler implements MinecraftSessionHandler {
   private GameProfile profile;
   private @MonotonicNonNull ConnectedPlayer connectedPlayer;
   private final boolean onlineMode;
+  private final ClientHandshakePhase connectionPhase;
 
   AuthSessionHandler(VelocityServer server, LoginInboundConnection inbound,
-      GameProfile profile, boolean onlineMode) {
+      GameProfile profile, boolean onlineMode, ClientHandshakePhase connectionPhase) {
     this.server = Preconditions.checkNotNull(server, "server");
     this.inbound = Preconditions.checkNotNull(inbound, "inbound");
     this.profile = Preconditions.checkNotNull(profile, "profile");
     this.onlineMode = onlineMode;
     this.mcConnection = inbound.delegatedConnection();
+    this.connectionPhase = connectionPhase;
   }
 
   @Override
@@ -165,14 +167,14 @@ public class AuthSessionHandler implements MinecraftSessionHandler {
       }
     }
 
-    ServerLoginSuccess success = new ServerLoginSuccess();
-    success.setUsername(player.getUsername());
-    success.setProperties(player.getGameProfileProperties());
-    success.setUuid(playerUniqueId);
-    mcConnection.write(success);
+    //ServerLoginSuccess success = new ServerLoginSuccess();
+    //success.setUsername(player.getUsername());
+    //success.setProperties(player.getGameProfileProperties());
+    //success.setUuid(playerUniqueId);
+    //mcConnection.write(success);
 
     mcConnection.setAssociation(player);
-    mcConnection.setState(StateRegistry.PLAY);
+    //mcConnection.setState(StateRegistry.PLAY);
 
     server.getEventManager().fire(new LoginEvent(player))
         .thenAcceptAsync(event -> {
@@ -209,9 +211,10 @@ public class AuthSessionHandler implements MinecraftSessionHandler {
   }
 
   private CompletableFuture<Void> connectToInitialServer(ConnectedPlayer player) {
-    Optional<RegisteredServer> initialFromConfig = player.getNextServerToTry();
+    Optional<RegisteredServer> initialServer = connectionPhase.initialServerData().map(server::getServer).orElseGet(player::getNextServerToTry);
+
     PlayerChooseInitialServerEvent event = new PlayerChooseInitialServerEvent(player,
-        initialFromConfig.orElse(null));
+        initialServer.orElse(null));
 
     return server.getEventManager().fire(event)
         .thenRunAsync(() -> {

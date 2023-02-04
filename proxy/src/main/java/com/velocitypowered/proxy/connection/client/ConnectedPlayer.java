@@ -53,6 +53,7 @@ import com.velocitypowered.proxy.VelocityServer;
 import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.MinecraftConnectionAssociation;
 import com.velocitypowered.proxy.connection.backend.VelocityServerConnection;
+import com.velocitypowered.proxy.connection.forge.modern.ModernForgeHandshakeClientPhase;
 import com.velocitypowered.proxy.connection.player.VelocityResourcePackInfo;
 import com.velocitypowered.proxy.connection.util.ConnectionMessages;
 import com.velocitypowered.proxy.connection.util.ConnectionRequestResults.Impl;
@@ -78,6 +79,7 @@ import com.velocitypowered.proxy.tablist.VelocityTabListLegacy;
 import com.velocitypowered.proxy.util.ClosestLocaleMatcher;
 import com.velocitypowered.proxy.util.DurationUtils;
 import com.velocitypowered.proxy.util.collect.CappedSet;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import java.net.InetSocketAddress;
@@ -1176,6 +1178,15 @@ public class ConnectedPlayer implements MinecraftConnectionAssociation, Player, 
                   Optional<ConnectionRequestBuilder.Status> check = checkServer(realDestination);
                   if (check.isPresent()) {
                     return completedFuture(plainResult(check.get(), realDestination));
+                  }
+
+                  if (connectionPhase == ModernForgeHandshakeClientPhase.COMPLETED) {
+                    ByteBuf buf = Unpooled.buffer();
+                    buf.writeByte(0);
+                    ProtocolUtils.writeString(buf, realDestination.getServerInfo().getName());
+                    connection.write(new PluginMessage("proxy:transfer", buf));
+
+                    return completedFuture(plainResult(Status.SUCCESS, realDestination));
                   }
 
                   VelocityRegisteredServer vrs = (VelocityRegisteredServer) realDestination;
